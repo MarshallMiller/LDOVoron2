@@ -1,0 +1,13 @@
+[Unit]
+Description=Disable USB
+After=local-fs.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c 'echo "1-1" > /sys/bus/usb/drivers/usb/unbind'
+ExecStart=/bin/bash -c 'echo "1-0:1.0" > /sys/bus/usb/drivers/hub/unbind'
+
+[Install]
+WantedBy=local-fs.target
