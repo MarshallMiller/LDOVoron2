@@ -15,4 +15,4 @@ cp Firmware/*.cfg ~/printer_data/config/
 #cd KlipperScreen
 #./scripts/KlipperScreen-install.sh
 
-sudo cp wlan0 /etc/network/interfaces.d/
+sudo cp 99-user.conf /etc/sysctl.d/
