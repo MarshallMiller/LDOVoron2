@@ -311,6 +311,9 @@ class Ercf:
     def _servo_off(self):
         self.gcode.run_script_from_command("SET_SERVO SERVO=ercf_servo WIDTH=0.0")
 
+    def _servo_down_only(self):
+        self._servo_set_angle(self.servo_down_angle)
+
     def _servo_down(self):
         if self.servo_state == self.SERVO_DOWN_STATE:
             return
@@ -319,7 +322,7 @@ class Ercf:
         self.gear_stepper.do_set_position(0.)
         self.gear_stepper.do_move(0.5, 25, self.gear_stepper_accel, sync=0)
 
-        self._servo_set_angle(self.servo_down_angle)
+        self._servo_down_only()
 
         self.toolhead.dwell(0.2)
         self.gear_stepper.do_move(0., 25, self.gear_stepper_accel, sync=0)
@@ -466,7 +469,10 @@ class Ercf:
         if values:
             mean = sum(values) / len(values)
             diff2 = [( v - mean )**2 for v in values]
-            stdev = math.sqrt( sum(diff2) / ( len(values) - 1 ))
+            if len(values) == 1:
+                stdev = 0.0
+            else:
+                stdev = math.sqrt( sum(diff2) / ( len(values) - 1 ))
             vmin = min(values)
             vmax = max(values)
         return {'mean': mean, 'stdev': stdev, 'min': vmin,
@@ -478,6 +484,7 @@ class Ercf:
         repeats = gcmd.get_int('RANGE', 5, minval=1)
         speed = gcmd.get_float('SPEED', self.long_moves_speed, above=0.)
         accel = gcmd.get_float('ACCEL', self.long_moves_accel, above=0.)
+        gcmd.respond_info("Length: %s, Speed: %s, Accel: %s" % (dist, speed, accel))
         plus_values, min_values = [], []
 
         for x in range(repeats):
@@ -529,10 +536,13 @@ class Ercf:
 
     cmd_ERCF_TEST_MOVE_GEAR_help = "Move the ERCF gear"
     def cmd_ERCF_TEST_MOVE_GEAR(self, gcmd):
-        length = gcmd.get_float('LENGTH', 200.)
-        speed = gcmd.get_float('SPEED', 50.)
-        accel = gcmd.get_float('ACCEL', 200.)
+        self._servo_down_only()
+        self._servo_off()
+        length = 200
+        speed = 5
+        accel = self.gear_stepper_accel
         self.gear_stepper.do_set_position(0.)
+        gcmd.respond_info("Length: %s, Speed: %s, Accel: %s" % (length, speed, accel))
         self.gear_stepper.do_move(length, speed, accel)
 
     cmd_ERCF_TEST_LOAD_SEQUENCE_help = "Test sequence"
