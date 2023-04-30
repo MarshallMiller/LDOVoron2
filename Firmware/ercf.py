@@ -995,15 +995,15 @@ class Ercf:
 
         self._log_debug("Loading to the nozzle")
 
-        self._servo_up()      
         self._counter.reset_counts()    
         pos = self.toolhead.get_position()
         pos[3] += self.end_of_bowden_to_nozzle
         self.toolhead.manual_move(pos, 20)
+        self._servo_up()      
         self.toolhead.dwell(0.2)
         self.toolhead.wait_moves()
         moved_length = self._counter.get_distance()
-        self._log_debug("Extruder move to nozzle attempted %.1f - encoder read %.1f" % (self.end_of_bowden_to_nozzle, moved_length))
+        self._log_info("Extruder move to nozzle attempted %.1f - encoder read %.1f" % (self.end_of_bowden_to_nozzle, moved_length))
 
         if moved_length < 5.:
             self._log_info("Move to nozzle failed, pausing!")
@@ -1025,6 +1025,8 @@ class Ercf:
         self._home_to_extruder(self.extruder_homing_max, self.extruder_homing_step)
         if not no_nozzle:
             self._load_to_nozzle()
+        else:
+            self._log_info("Not loading to nozzle")
         self._track_load_end()
 
     cmd_ERCF_LOAD_help = "Load filament from ERCF to the toolhead"
